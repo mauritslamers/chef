@@ -1,0 +1,107 @@
+#!/usr/bin/env node
+
+//detect whether we should use a custom garcon (in the project folder) or the system wide garcon
+var sys = require('sys'),
+    fs = require('fs'),
+    lib = require('../shared/lib'),
+    PWD = process.env.PWD,
+    args = process.argv,
+    customGarconPath, customSCPath,
+    Server, myServer, Garcon,
+    app_i,numapps, apps = [], 
+    args_i, args_len, curArg,
+    garconPath, sproutcorePath;
+
+var showHelp = function(){
+  sys.puts("Syntax: garcon serve [options]");
+  sys.puts("");
+  sys.puts("options: ");
+  sys.puts("  -g path \t custom path to garcon");
+  sys.puts("  -s path \t custom path to sproutcore");
+  sys.puts(" Providing a custom path will override the normal behaviour, which is to check for");
+  sys.puts(" a custom path and if it doesn't exist fall back to the default paths.");
+  sys.puts(" If the custom path doesn't exist, garcon serve will fail");
+  process.exit();
+};
+
+
+if(args[3] === '--help') showHelp();
+
+for(args_i=2,args_len=args.length;args_i<args_len;args_i+=1){
+  curArg = args[args_i];
+  switch(curArg.substr(0,2)){
+    case '-g': 
+      if(curArg.length > 2){
+        customGarconPath = curArg.substr(2);
+      }
+      else {
+        customGarconPath = args[args_i+1];
+        args_i+=1; // skip to next arg
+      }
+      break;
+    case '-s': 
+      if(curArg.length > 2){
+        customSCPath = curArg.substr(2);
+      }
+      else {
+        customSCPath = args[args_i+1];
+        args_i+=1; // skip to next arg
+      }
+      break;
+    default: showHelp();
+  }
+}
+
+customGarconPath = (!customGarconPath)? lib.checkCustomGarcon(PWD): customGarconPath;
+customSCPath = (!customSCPath)? lib.checkCustomSC(PWD): customSCPath;
+
+// do something with command line arguments
+// we need one for overriding the sproutcore and garcon custom stuff
+// and we should also allow overriding using the config file
+// and we should enable to use a different config file by command line params
+
+var config = require(PWD + '/config').config;
+//check for garcon dir and frameworks sproutcore dir
+//otherwise use a standard one
+garconPath = (!customGarconPath)? '/usr/local/share/garcon': customGarconPath;
+sproutcorePath = (!customSCPath)? '/usr/share/garcon/sproutcore': customSCPath;
+
+
+
+/*
+var g = require('../garcon/lib/garçon'),
+    server = new g.Server({ port: 8010, proxyHost: 'localhost', proxyPort: 8080});
+*/
+
+Garcon = lib.loadGarcon(garconPath);
+if(!Garcon){
+  sys.puts('FAIL: could not load Garcon');
+  process.exit(1);
+} 
+
+if(!lib.pathExists(sproutcorePath + '/frameworks/runtime')){
+  sys.puts('FAIL: could not find Sproutcore');
+  process.exit(1);
+} 
+
+myServer = new Garcon.Server({ 
+  port: config.port || 8000,
+  proxyHost: config.proxyHost,
+  proxyPort: config.proxyPort
+  });
+  
+for(app_i=0,numapps=config.apps.length; app_i<numapps;app_i+=1){
+  apps[app_i] = myServer.addApp({ name: config.apps[app_i] });
+  // addSproutcore needs adaptation for custom or general sc and options
+  lib.addSproutcore(apps[app_i],Garcon.Framework,{ basePath: sproutcorePath }); 
+  apps[app_i].addFrameworks(config[config.apps[app_i]].frameworks);
+  apps[app_i].addFrameworks({ path: config[config.apps[app_i]].path });
+  apps[app_i].build();
+}
+
+myServer.run();
+
+
+
+
+

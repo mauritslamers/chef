@@ -1,0 +1,30 @@
+#!/usr/bin/env node
+
+//do some checking of command line params
+var sys = require('sys'),
+    cp = require('child_process'),
+    args = process.argv, 
+    cmd;
+
+var dispatch = function(action){
+  var command = '/usr/local/share/garcon/bin/garcon-' + action; // hardcoded for now
+  sys.log('dispatching action: ' + action + ' command: ' + command);
+  cp.spawn(command,args.splice(3), { customFds: [0,0,0]}); // hook up current stdin, stdout and stderr
+}
+
+// args[0] == node
+// args[1] == path of garcon exec
+if(args.length === 2){
+  sys.puts("You need to give a command. Valid commands are 'init', 'gen', 'serve' and 'build'.");
+  process.exit(); //exit
+}
+
+cmd = args[2];
+switch(cmd){
+  case 'init': dispatch('init'); break;
+  case 'gen': dispatch('gen'); break;
+  case 'serve': dispatch('serve'); break;
+  case 'build': dispatch('build'); break;
+  default: sys.puts('Command not recognised: ' + ['"',cmd,'"'].join("") + ". Valid commands are 'init', 'gen', 'serve' and 'build'.");
+}
+
