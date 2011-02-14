@@ -114,3 +114,18 @@ exports.addSproutcore = function(app,Framework,options){
   
   app.addSproutcore(options);
 }
+
+//filename == string, directives == object: key is directive name, value is the value to replace it with
+//opens the file, replaces all directives and gives back the result 
+//as one string
+exports.replaceDirectives = function(filename,directives){
+  var i,contents,regex;
+  if(filename && directives){
+    contents = fs.readFileSync(filename);
+    for(var i in directives){
+      contents = contents.replace("@@" + i, directives[i]);
+    }
+    return contents;
+  }
+  else return "";
+}
