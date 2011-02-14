@@ -10,6 +10,7 @@ var sys = require('sys'),
     Server, myServer, Garcon,
     app_i,numapps, apps = [], 
     args_i, args_len, curArg,
+    appOpts,
     garconPath, sproutcorePath;
 
 var showHelp = function(){
@@ -31,7 +32,7 @@ for(args_i=2,args_len=args.length;args_i<args_len;args_i+=1){
   curArg = args[args_i];
   switch(curArg.substr(0,2)){
     case '-g': 
-      if(curArg.length > 2){
+      if(curArg.length > 2){ // allow for both -g path as -gpath 
         customGarconPath = curArg.substr(2);
       }
       else {
@@ -39,7 +40,7 @@ for(args_i=2,args_len=args.length;args_i<args_len;args_i+=1){
         args_i+=1; // skip to next arg
       }
       break;
-    case '-s': 
+    case '-s': // allow for both -s path as -gpath 
       if(curArg.length > 2){
         customSCPath = curArg.substr(2);
       }
@@ -91,7 +92,9 @@ myServer = new Garcon.Server({
   });
   
 for(app_i=0,numapps=config.apps.length; app_i<numapps;app_i+=1){
-  apps[app_i] = myServer.addApp({ name: config.apps[app_i] });
+  appOpts = config.apps[app_i].options || {};
+  if(!appOpts.name) appOpts.name = config.apps[app_i];
+  apps[app_i] = myServer.addApp(appOpts);
   // addSproutcore needs adaptation for custom or general sc and options
   lib.addSproutcore(apps[app_i],Garcon.Framework,{ basePath: sproutcorePath }); 
   apps[app_i].addFrameworks(config[config.apps[app_i]].frameworks);
