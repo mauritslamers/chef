@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+
+var args = process.argv,
+    sys = require('sys'),
+    PWD = process.env.PWD,
+    appName, typeName, tmpArg;
+
+var showHelp = function(){
+  sys.puts("Syntax: garcon gen [type] [app/name]");
+  sys.puts("");
+  sys.puts("types: app/controller/data-source/framework/language/model/page/test/theme/view ");
+  sys.puts(" ")
+  process.exit();
+};
+
+if((args[3] === '--help') || (args[3] === '')) showHelp();
+if(!args[4]) showHelp();
+
+tmpArg = args[4].split('/');
+if(tmpArg.length !== 2){
+  sys.puts("no valid app or name found");
+  process.exit();
+}
+else {
+  appName = tmpArg[0];
+  typeName = tmpArg[1];
+}
+
+switch(args[3]){
+  case 'app': break;
+  case 'controller': break;
+  case 'data-source': break;
+  default: showHelp();
+}
