@@ -89,6 +89,8 @@ exports.addSproutcore = function(app,Framework,options){
        if(pathExists(options.basePath + '/frameworks/jquery')) fws.push('jquery');
        fws.push('runtime');
        if(pathExists(options.basePath + '/frameworks/amber')) fws.push('amber');
+       if(pathExists(options.basePath + '/frameworks/handlebars')) fws.push('handlebars');
+       if(pathExists(options.basePath + '/frameworks/core_foundation')) fws.push('core_foundation');
        fws.concat(['foundation', 'datastore', 'desktop', 'animation']);
        
        opts = { combineScripts: true };
